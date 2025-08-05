@@ -6,13 +6,16 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install
+RUN npm ci --only=production
 
-# Copy source code (this will be overridden by volume mount in development)
+# Copy source code
 COPY . .
 
-# Expose port
-EXPOSE 3000
+# Build the application
+RUN npm run build
 
-# Start the application in development mode (with hot reload)
-CMD ["npm", "run", "dev"]
+# Expose port (Railway will set PORT env var)
+EXPOSE $PORT
+
+# Start the application in production mode
+CMD ["npm", "run", "start"]
