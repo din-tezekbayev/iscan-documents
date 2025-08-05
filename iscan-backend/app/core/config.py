@@ -1,5 +1,6 @@
 from pydantic_settings import BaseSettings
 from typing import Optional
+import os
 
 class Settings(BaseSettings):
     app_name: str = "iScan Document Processing"
@@ -8,9 +9,10 @@ class Settings(BaseSettings):
     database_url: str
     redis_url: str
     
-    ftp_host: str
-    ftp_user: str
-    ftp_password: str
+    # FTP settings - optional for Railway deployment
+    ftp_host: Optional[str] = None
+    ftp_user: Optional[str] = None
+    ftp_password: Optional[str] = None
     ftp_port: int = 21
     ftp_base_path: str = "/Marketplace/scan_ai"
     ftp_files_path: str = "/Marketplace/scan_ai/files"
@@ -20,6 +22,10 @@ class Settings(BaseSettings):
     
     celery_broker_url: Optional[str] = None
     celery_result_backend: Optional[str] = None
+    
+    # Railway deployment settings
+    port: int = 8000
+    host: str = "0.0.0.0"
     
     class Config:
         env_file = ".env"
