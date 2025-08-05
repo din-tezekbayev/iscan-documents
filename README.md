@@ -56,8 +56,8 @@ OPENAI_API_KEY=your_openai_api_key_here
 ### 2. Start Infrastructure Services
 
 ```bash
-# Start PostgreSQL, Redis, and FTP server
-docker-compose up postgres redis ftp -d
+# Start PostgreSQL and Redis
+docker-compose up postgres redis -d
 ```
 
 ### 3. Backend Setup
@@ -98,6 +98,11 @@ npm run dev
 
 ## Usage
 
+### Frontend Routes
+
+- **Dashboard** (`/`) - Main page with document upload and files dashboard
+- **File Types** (`/file-types`) - Manage document types and processing prompts
+
 ### Document Upload
 
 1. Access the web interface at http://localhost:3000
@@ -115,12 +120,12 @@ The system supports three default document types:
 
 ### Processing Workflow
 
-1. **Upload**: Files uploaded to FTP server with unique names
-2. **Queue**: Processing jobs added to Redis queue
+1. **Upload**: Files uploaded with unique names
+2. **Queue**: Processing jobs added to Redis queue with Celery
 3. **Extract**: PDF text extraction using PyMuPDF
-4. **Process**: LangGraph workflow with ChatGPT analysis
+4. **Process**: LangGraph workflow with GPT-4o analysis
 5. **Store**: Results saved as JSON in PostgreSQL
-6. **Export**: CSV files generated and saved to FTP
+6. **Export**: CSV files generated for batch processing
 
 ### API Endpoints
 
@@ -201,10 +206,9 @@ docker-compose up -d
 
 1. **Database**: Setup PostgreSQL with provided schema
 2. **Redis**: Configure Redis for queue management
-3. **FTP**: Setup FTP server for file storage
-4. **Backend**: Deploy FastAPI with gunicorn
-5. **Frontend**: Build and deploy with nginx
-6. **Workers**: Start Celery workers for processing
+3. **Backend**: Deploy FastAPI with gunicorn
+4. **Frontend**: Build and deploy with nginx
+5. **Workers**: Start Celery workers for processing
 
 ## Configuration
 
@@ -214,10 +218,7 @@ docker-compose up -d
 |----------|-------------|---------|
 | `DATABASE_URL` | PostgreSQL connection string | - |
 | `REDIS_URL` | Redis connection string | - |
-| `FTP_HOST` | FTP server hostname | localhost |
-| `FTP_USER` | FTP username | iscan_ftp |
-| `FTP_PASSWORD` | FTP password | - |
-| `OPENAI_API_KEY` | OpenAI API key for ChatGPT | - |
+| `OPENAI_API_KEY` | OpenAI API key for GPT-4o | - |
 | `NEXT_PUBLIC_API_URL` | Frontend API URL | http://localhost:8000 |
 
 ### File Processing Limits
@@ -231,25 +232,25 @@ docker-compose up -d
 
 ### Common Issues
 
-1. **FTP Connection Failed**
-   - Check FTP server is running
-   - Verify credentials in .env file
-   - Ensure FTP ports are accessible
-
-2. **Celery Worker Not Processing**
+1. **Celery Worker Not Processing**
    - Check Redis connection
    - Restart Celery worker
    - Verify task registration
 
-3. **PDF Processing Failed**
+2. **PDF Processing Failed**
    - Ensure file is valid PDF
-   - Check OpenAI API key
+   - Check OpenAI API key and rate limits
    - Review processing prompts
 
-4. **Frontend API Errors**
+3. **Frontend API Errors**
    - Verify backend is running
    - Check CORS settings
    - Confirm API URL configuration
+
+4. **Database Connection Issues**
+   - Check PostgreSQL is running
+   - Verify DATABASE_URL configuration
+   - Run database migrations
 
 ### Logs
 
@@ -267,6 +268,4 @@ MIT License - see LICENSE file for details.
 For issues and questions:
 1. Check the troubleshooting section
 2. Review API documentation at `/docs`
-3. Create an issue with detailed logs and steps to reproduce# iscan-documents
-# iscan-documents
-# iscan-documents
+3. Create an issue with detailed logs and steps to reproduce

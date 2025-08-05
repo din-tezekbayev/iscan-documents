@@ -1,0 +1,78 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: iscan_db
+      POSTGRES_USER: iscan_user
+      POSTGRES_PASSWORD: iscan_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - iscan_network
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - iscan_network
+
+
+  backend:
+    build: ./iscan-backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./iscan-backend:/app
+    networks:
+      - iscan_network
+    command: >
+      sh -c "python wait-for-db.py && python test_imports.py && python test_ftp.py && python init_db.py && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+
+  celery:
+    build: ./iscan-backend
+    command: >
+      sh -c "python wait-for-db.py && python test_imports.py && celery -A app.celery_app worker --loglevel=info"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+      - backend
+    volumes:
+      - ./iscan-backend:/app
+    networks:
+      - iscan_network
+
+  frontend:
+    build: ./iscan-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000
+    depends_on:
+      - backend
+    volumes:
+      - ./iscan-frontend:/app
+      - /app/node_modules
+    networks:
+      - iscan_network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  iscan_network:
+    driver: bridge
